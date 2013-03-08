@@ -4,6 +4,7 @@ from django.conf.urls import patterns, url, include
 
 urlpatterns = patterns(
     '',
+    url(r'^test/?$', 'django_webvideo.views.test', name='test')
 )
 
 if settings.DEBUG:

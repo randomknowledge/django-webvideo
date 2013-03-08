@@ -103,6 +103,6 @@ LOCALE_PATHS = (
 
 DJANGO_WEBVIDEO_SETTINGS = {
     'ffmpeg': {
-        'binary': '/usr/local/xuggler/bin/ffmpeg'
+        'binary': '/usr/bin/ffmpeg'
     },
 }

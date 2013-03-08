@@ -79,6 +79,9 @@ class WebVideo(models.Model):
             return float(m.group('hours')) * 3600 + float(m.group('minutes')) * 60 + float(m.group('seconds'))
         return 0.0
 
+    def get_screen(self, num=1):
+        return getattr(self, 'screen_{0}'.format(num))
+
     def convert(self):
         if self.status != constants.VIDEO_STATE_PENDING:
             return
@@ -128,7 +131,7 @@ class WebVideo(models.Model):
             'upscale': upscale,
             'crop': width and height,
         }
-        img = getattr(self, 'screen_{0}'.format(screen))
+        img = self.get_screen(screen)
         if img:
             try:
                 return get_thumbnailer(img).get_thumbnail(options).url

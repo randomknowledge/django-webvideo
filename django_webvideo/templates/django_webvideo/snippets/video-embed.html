@@ -1,0 +1,4 @@
+<video {{ attributes }} width="{{ width }}" height="{{ height }}" preload="{{ preload }}" poster="{{ poster }}"{% if controls %} controls{% endif %}{% if autoplay %} autoplay="autoplay"{% endif %}>
+    <source src="{{ video.h264.url }}" type="video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;">
+    <source src="{{ video.oggvorbis.url }}" type="video/ogg; codecs=&quot;theora, vorbis&quot;">
+</video>

@@ -1,0 +1,14 @@
+{% load webvideo_tags %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+{% if not video %}
+    <h1>Please upload a Video first...</h1>
+{% else %}
+    {% video_tag video width=640 height=480 autoplay=0 controls=1 attributes='id="test"' screen_num=2 %}
+{% endif %}
+</body>
+</html>

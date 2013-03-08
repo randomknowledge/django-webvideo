@@ -14,6 +14,6 @@ urlpatterns = patterns(
 
     url(
         r'',
-        include('django_webvideo.urls')
+        include('django_webvideo.urls', namespace='django_webvideo', app_name='django_webvideo')
     ),
 )

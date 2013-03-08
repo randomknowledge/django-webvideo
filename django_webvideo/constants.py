@@ -16,3 +16,17 @@ VIDEO_STATES = {
 VIDEO_STATE_CHOICES = ()
 for key, value in VIDEO_STATES.iteritems():
     VIDEO_STATE_CHOICES += ((key, value),)
+
+VIDEO_CODECS = {
+    'h264': 'mp4',
+    'ogv': 'ogv',
+    'webm': 'webm',
+}
+
+VIDEO_QUALITIES = ('1080p', '720p', '480p', '360p', )
+
+VIDEO_MIMETYPES = {
+    'h264': 'video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+    'ogv': 'video/ogg; codecs="theora, vorbis"',
+    'webm': 'video/webm; codecs="vp8.0, vorbis"',
+}

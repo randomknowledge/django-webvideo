@@ -1,5 +1,6 @@
 # coding=utf-8
 import re
+import subprocess
 from django.conf import settings
 from django_webvideo.video import convert_video, video_info, create_screen_image
 import os
@@ -10,22 +11,25 @@ from django.utils.translation import ugettext_lazy as _
 
 
 def _get_video_paths(infile, codec):
-    if not codec in ('h264', 'ogv'):
-        raise AttributeError("Parameter 'codec' must be either 'h264' or 'ogv'!")
-    ext = 'mp4' if codec == 'h264' else 'ogv'
+    if not codec in constants.VIDEO_CODECS.keys():
+        raise AttributeError("Parameter 'codec' must be in {0}!".format(constants.VIDEO_CODECS.keys))
+    ext = constants.VIDEO_CODECS.get(codec)
 
     basename, _ = os.path.splitext(os.path.basename(infile))
-    path_rel = os.path.join(
-        get_setting('convert_to'),
-        "{0}.{1}.{2}".format(basename, codec, ext)
-    )
-
-    path_abs = os.path.join(
-        settings.MEDIA_ROOT,
-        path_rel,
-    )
-
-    return path_rel, path_abs
+    paths = {}
+    for quality in constants.VIDEO_QUALITIES:
+        rel = os.path.join(
+            get_setting('convert_to'),
+            "{0}.{1}.{2}.{3}".format(basename, codec, quality, ext)
+        )
+        paths[quality] = {
+            'relative': rel,
+            'absolute': os.path.join(
+                settings.MEDIA_ROOT,
+                rel,
+            ),
+        }
+    return paths
 
 
 def _get_image_paths(infile, n):
@@ -43,14 +47,33 @@ def _get_image_paths(infile, n):
     return path_rel, path_abs
 
 
-def _convert(web_video):
-    web_video.convert()
+def _convert_single(web_video, codec, quality):
+    try:
+        web_video._convert_single(codec, quality)
+    except subprocess.CalledProcessError:
+        web_video.status = constants.VIDEO_STATE_ERROR
+        web_video.save()
 
 
 class WebVideo(models.Model):
     original = models.FileField(upload_to=get_setting('upload_to'))
-    h264 = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    oggvorbis = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+
+    video_h264_1080p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    video_ogv_1080p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    video_webm_1080p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+
+    video_h264_720p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    video_ogv_720p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    video_webm_720p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+
+    video_h264_480p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    video_ogv_480p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    video_webm_480p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+
+    video_h264_360p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    video_ogv_360p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    video_webm_360p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+
     status = models.SmallIntegerField(
         choices=constants.VIDEO_STATE_CHOICES, default=constants.VIDEO_STATE_PENDING, editable=False
     )
@@ -70,7 +93,7 @@ class WebVideo(models.Model):
             super(WebVideo, self).save(force_insert, force_update, using, update_fields)
             self.duration = self._get_calculated_duration()
             self.create_screen_images()
-            queue.enqueue(_convert, self)
+            self.convert()
         super(WebVideo, self).save(force_insert, force_update, using, update_fields)
 
     def _get_calculated_duration(self):
@@ -86,26 +109,33 @@ class WebVideo(models.Model):
     def get_screen(self, num=1):
         return getattr(self, 'screen_{0}'.format(num))
 
+    def get_video(self, codec, quality):
+        return getattr(self, 'video_{0}_{1}'.format(codec, quality))
+
     def convert(self):
         if self.status != constants.VIDEO_STATE_PENDING:
             return
         self.status = constants.VIDEO_STATE_INPROGRESS
         self.save()
-        out1_rel, out1_abs = _get_video_paths(self.original.path, 'h264')
-        out2_rel, out2_abs = _get_video_paths(self.original.path, 'ogv')
-        result1 = convert_video(self.original.path, out1_abs, 'h264')
-        result2 = convert_video(self.original.path, out2_abs, 'ogv')
-        if result1 and result2:
-            self.h264.name = out1_rel
-            self.oggvorbis.name = out2_rel
-            self.status = constants.VIDEO_STATE_SUCCESS
-        else:
-            if result1:
-                self.h264.name = out1_rel
-            if result2:
-                self.oggvorbis.name = out2_rel
-            self.status = constants.VIDEO_STATE_ERROR
-        self.save()
+        for codec in constants.VIDEO_CODECS.keys():
+            for quality in constants.VIDEO_QUALITIES:
+                queue.enqueue(_convert_single, self, codec, quality)
+
+    def _convert_single(self, codec, quality):
+        paths = _get_video_paths(self.original.path, codec)[quality]
+        if convert_video(self.original.path, paths.get('absolute'), codec, quality):
+            # get object from db to prevent "no-save" bug in rq
+            obj = WebVideo.objects.get(pk=self.pk)
+            obj.get_video(codec, quality).name = paths.get('relative')
+            success = True
+            for c in constants.VIDEO_CODECS.keys():
+                for q in constants.VIDEO_QUALITIES:
+                    success &= bool(obj.get_video(c, q))
+            if success:
+                obj.status = constants.VIDEO_STATE_SUCCESS
+            obj.save()
+            return True
+        return False
 
     def create_screen_images(self):
         if self.duration == 0:

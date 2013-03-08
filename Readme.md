@@ -144,4 +144,4 @@ replace "webvideo" with your 'queue_prefix' setting
 ## Example Template usage
 
     {% load webvideo_tags %}
-    {% video_tag webvideo_object 720p autoplay=0 controls=1 attributes='id="test"' screen_num=2 %}
+    {% video_tag webvideo_object quality=720p autoplay=0 controls=1 attributes='id="test"' screen_num=2 %}

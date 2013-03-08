@@ -11,7 +11,7 @@ setup(
     version=django_webvideo.__version__,
     packages=['django_webvideo'],
     package_data=finddata.find_package_data(),
-    url='https://github.com/randomknowledge/django_webvideo',
+    url='https://github.com/randomknowledge/django-webvideo',
     include_package_data=True,
     license='MIT',
     description='A queuing web video converter',

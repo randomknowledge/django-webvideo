@@ -63,6 +63,7 @@ class WebVideo(models.Model):
             except WebVideo.DoesNotExist:
                 pass
         if old_video != self.original:
+            super(WebVideo, self).save(force_insert, force_update, using, update_fields)
             self.duration = self._get_calculated_duration()
             self.create_screen_images()
             # TODO: enqueue video conversion
@@ -100,6 +101,8 @@ class WebVideo(models.Model):
         self.save()
 
     def create_screen_images(self):
+        if self.duration == 0:
+            return
         out1_rel, out1_abs = _get_image_paths(self.original.path, 1)
         out2_rel, out2_abs = _get_image_paths(self.original.path, 2)
         out3_rel, out3_abs = _get_image_paths(self.original.path, 3)

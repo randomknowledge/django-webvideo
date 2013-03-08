@@ -14,16 +14,29 @@ DEFAULT_SETTINGS = {
                      "-qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -r 30 -g 90 {outfile}",
         'call_ogv': '{ffmpeg} -i {infile} -b 1200k -vcodec libtheora -acodec libvorbis -ab 160000 {outfile}',
     },
+    'redis': {
+        'connection': {
+            'db': 0,
+            'host': 'localhost',
+            'port': 6379,
+        },
+        'eager': False,  # If True, Tasks are not queued, but executed directly. Use for testing purposes only!
+        'queue_prefix': 'webvideo',  # django_webvideo will prefix all (RQ-)Queues with this prefix.
+        'timeout': 600,
+    }
 }
 
 
 def _get_setting(setting, key, *subkeys):
     if len(subkeys) > 0:
-        while isinstance(setting, dict) and len(subkeys) > 0:
+        while setting is not None and isinstance(setting, dict) and len(subkeys) > 0:
             setting = setting.get(key)
             key = subkeys[0]
             subkeys = subkeys[1:]
-        return setting.get(key)
+        try:
+            return setting.get(key)
+        except AttributeError:
+            return None
     else:
         return setting.get(key)
 
@@ -34,3 +47,7 @@ def get_setting(key, *subkeys):
         return _get_setting(DEFAULT_SETTINGS, key, *subkeys)
     else:
         return value
+
+
+def get_queue_name():
+    return "{0}:convert".format(get_setting('redis', 'queue_prefix'))

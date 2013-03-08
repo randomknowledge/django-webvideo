@@ -5,7 +5,7 @@ from django_webvideo.video import convert_video, video_info, create_screen_image
 import os
 from django.db import models
 from django_webvideo.settings import get_setting
-from django_webvideo import constants
+from django_webvideo import constants, queue
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -43,6 +43,10 @@ def _get_image_paths(infile, n):
     return path_rel, path_abs
 
 
+def _convert(web_video):
+    web_video.convert()
+
+
 class WebVideo(models.Model):
     original = models.FileField(upload_to=get_setting('upload_to'))
     h264 = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
@@ -66,7 +70,7 @@ class WebVideo(models.Model):
             super(WebVideo, self).save(force_insert, force_update, using, update_fields)
             self.duration = self._get_calculated_duration()
             self.create_screen_images()
-            # TODO: enqueue video conversion
+            queue.enqueue(_convert, self)
         super(WebVideo, self).save(force_insert, force_update, using, update_fields)
 
     def _get_calculated_duration(self):

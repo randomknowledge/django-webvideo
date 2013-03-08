@@ -8,14 +8,6 @@ DEFAULT_SETTINGS = {
     'screens_to': 'videos/screens',  # upload_to parameter for video screenshots
     'ffmpeg': {
         'binary': 'ffmpeg',  # path to ffmpeg binary
-        'call_h264': "{ffmpeg} -y -i {infile} -acodec libmp3lame -ar 48000 -ab 128k -ac 2 -vcodec libx264 "
-                     "-cmp 256 -subq 7 -trellis 1 -refs 5 -coder 0 -me_range 16 -keyint_min 25 -sc_threshold 40 "
-                     "-i_qfactor 0.71 -bt 1200k -maxrate 1200k -bufsize 1200k -rc_eq 'blurCplx^(1-qComp)' "
-                     "-qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -r 30 -g 90 {outfile}",
-        'call_h264_2': "{ffmpeg} -y -i {infile} -vcodec libx264 -vprofile medium"
-                     "-qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -r 30 -g 90 {outfile}",
-        'call_ogv': '{ffmpeg} -i {infile} -b 1200k -vcodec libtheora -acodec libvorbis -ab 160000 {outfile}',
-
         'convert_settings': {
             'commands': {
                 'h264': [

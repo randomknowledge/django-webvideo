@@ -86,6 +86,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
+
+    'django_webvideo',
 ]
 
 TEMPLATE_DIRS = (
@@ -97,3 +99,9 @@ STATICFILES_DIRS = (
 LOCALE_PATHS = (
     '%s/locale' % BASE_DIR,
 )
+
+DJANGO_WEBVIDEO_SETTINGS = {
+    'ffmpeg': {
+        'binary': '/usr/local/xuggler/bin/ffmpeg'
+    },
+}

@@ -15,6 +15,7 @@
 virtualenv/
 .sass-cache/
 .tox/
+/media/
 
 # Files #
 #########

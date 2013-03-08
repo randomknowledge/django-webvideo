@@ -22,7 +22,7 @@ $ sudo easy_install pip
 Download source and install package using pip:
 
 ```console
-$ sudo pip install -e git+https://github.com/randomknowledge/django_webvideo.git#egg=django-webvideo
+$ sudo pip install -e git+https://github.com/randomknowledge/django-webvideo.git#egg=django-webvideo
 ```
 
 Add ``django_webvideo`` to your ``INSTALLED_APPS`` setting::

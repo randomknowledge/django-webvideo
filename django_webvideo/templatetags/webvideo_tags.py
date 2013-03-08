@@ -12,16 +12,16 @@ def video_tag(video, quality, width=None, height=None, preload="auto", autoplay=
               screen_num=1):
     screen = video.get_screen(screen_num)
     if width is None:
-        width = screen.width
+        width = constants.VIDEO_SIZES.get(quality)[0]
     if height is None:
-        height = screen.height
+        height = constants.VIDEO_SIZES.get(quality)[1]
 
     files = []
     for codec in constants.VIDEO_CODECS.keys():
         vid = video.get_video(codec, quality)
         if vid:
             files.append({
-                'obj': file,
+                'obj': vid,
                 'mime': constants.VIDEO_MIMETYPES.get(codec)
             })
 

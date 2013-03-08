@@ -30,3 +30,10 @@ VIDEO_MIMETYPES = {
     'ogv': 'video/ogg; codecs="theora, vorbis"',
     'webm': 'video/webm; codecs="vp8.0, vorbis"',
 }
+
+VIDEO_SIZES = {
+    '1080p': (1920, 1080,),
+    '720p': (1280, 720,),
+    '480p': (854, 480,),
+    '360p': (640, 360,),
+}

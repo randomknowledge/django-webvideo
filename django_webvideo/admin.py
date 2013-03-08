@@ -27,8 +27,8 @@ def admin_thumb_helper(image_object=True, for_admin=True, height=100, width=0):
 
 class WebVideoAdmin(admin.ModelAdmin):
     list_display = ('original', 'status', 'duration', 'admin_thumb', )
-    fields = ('status', 'original', 'h264', 'oggtheora', 'duration', 'screen_1', 'screen_2', 'screen_3', )
-    readonly_fields = ('status', 'h264', 'oggtheora', 'duration', )
+    fields = ('status', 'original', 'h264', 'oggvorbis', 'duration', 'screen_1', 'screen_2', 'screen_3', )
+    readonly_fields = ('status', 'h264', 'oggvorbis', 'duration', )
 
     admin_thumb = admin_thumb_helper()
 

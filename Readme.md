@@ -2,7 +2,7 @@
 ___
 `django-webvideo` is a [Django](https://www.djangoproject.com/) module to convert videos into web video formats.
 Converting is handled by [ffmpeg](http://www.ffmpeg.org/) and queued with [rq](http://python-rq.org/).
-By now `django-webvideo` can convert to h264 and ogg/theora.
+By now `django-webvideo` can convert to h264 and ogg-vorbis.
 `django-webvideo` will also create 3 screenshots of each video.
 
 ____
@@ -10,6 +10,7 @@ ____
 * [Django](https://www.djangoproject.com/)
 * [easy-thumbnails](https://github.com/SmileyChris/easy-thumbnails)
 * [rq](http://python-rq.org/)
+* [ffmpeg](http://www.ffmpeg.org/) with libx264 and libvorbis
 
 ## Installation
 

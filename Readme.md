@@ -71,6 +71,12 @@ The following settings can be added to your django settings (these are also the 
 
 Any setting missing in this dictionary will be replaced by the default one.
 
+## Starting the conversion worker
+```console
+$ rqworker webvideo:convert
+```
+replace "webvideo" with your 'queue_prefix' setting
+
 ## Example Template usage
 
     {% load webvideo_tags %}

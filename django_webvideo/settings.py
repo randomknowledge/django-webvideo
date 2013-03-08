@@ -5,6 +5,7 @@ from django.conf import settings
 DEFAULT_SETTINGS = {
     'upload_to': 'videos',
     'convert_to': 'videos/converted',
+    'screens_to': 'videos/screens',
     'ffmpeg': {
         'binary': 'ffmpeg',
         'call_h264': "{ffmpeg} -y -i {infile} -acodec libmp3lame -ar 48000 -ab 128k -ac 2 -vcodec libx264 "

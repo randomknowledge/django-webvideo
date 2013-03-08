@@ -16,7 +16,12 @@ setup(
     description='',
     long_description=open('Readme.md').read(),
     zip_safe=False,
-    install_requires=['Django==1.5', 'South==0.7.6', ],
+    install_requires=[
+        'Django==1.5',
+        'South==0.7.6',
+        'PIL==1.1.7',
+        'easy-thumbnails==1.2',
+    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',

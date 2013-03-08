@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'south',
 
+    'easy_thumbnails',
     'django_webvideo',
 ]
 

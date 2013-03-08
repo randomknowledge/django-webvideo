@@ -50,7 +50,7 @@ def _convert(web_video):
 class WebVideo(models.Model):
     original = models.FileField(upload_to=get_setting('upload_to'))
     h264 = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    oggvorbis = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    oggtheora = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
     status = models.SmallIntegerField(
         choices=constants.VIDEO_STATE_CHOICES, default=constants.VIDEO_STATE_PENDING, editable=False
     )
@@ -97,13 +97,13 @@ class WebVideo(models.Model):
         result2 = convert_video(self.original.path, out2_abs, 'ogv')
         if result1 and result2:
             self.h264.name = out1_rel
-            self.oggvorbis.name = out2_rel
+            self.oggtheora.name = out2_rel
             self.status = constants.VIDEO_STATE_SUCCESS
         else:
             if result1:
                 self.h264.name = out1_rel
             if result2:
-                self.oggvorbis.name = out2_rel
+                self.oggtheora.name = out2_rel
             self.status = constants.VIDEO_STATE_ERROR
         self.save()
 

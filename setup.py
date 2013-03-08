@@ -1,19 +1,20 @@
 # coding=utf-8
 from setuptools import setup
+import django_webvideo
 import finddata
 
 
 setup(
-    name="django_webvideo",
+    name="django-webvideo",
     author="Florian Finke",
     author_email="flo@randomknowledge.org",
-    version='0.0.1',
+    version=django_webvideo.__version__,
     packages=['django_webvideo'],
     package_data=finddata.find_package_data(),
     url='https://github.com/randomknowledge/django_webvideo',
     include_package_data=True,
     license='MIT',
-    description='',
+    description='A queuing web video converter',
     long_description=open('Readme.md').read(),
     zip_safe=False,
     install_requires=[
@@ -21,6 +22,7 @@ setup(
         'South==0.7.6',
         'PIL==1.1.7',
         'easy-thumbnails==1.2',
+        'rq==0.3.7',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

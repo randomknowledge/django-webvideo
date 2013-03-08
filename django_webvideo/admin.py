@@ -1,6 +1,7 @@
 # coding: utf-8
 from django.contrib import admin
 from django_webvideo.models import WebVideo
+from django_webvideo.settings import get_setting
 
 
 def admin_thumb_helper(image_object=True, for_admin=True, height=100, width=0):
@@ -26,10 +27,11 @@ def admin_thumb_helper(image_object=True, for_admin=True, height=100, width=0):
 
 class WebVideoAdmin(admin.ModelAdmin):
     list_display = ('original', 'status', 'duration', 'admin_thumb', )
-    fields = ('status', 'original', 'h264', 'oggvorbis', 'duration', 'screen_1', 'screen_2', 'screen_3', )
-    readonly_fields = ('status', 'h264', 'oggvorbis', 'duration', )
+    fields = ('status', 'original', 'h264', 'oggtheora', 'duration', 'screen_1', 'screen_2', 'screen_3', )
+    readonly_fields = ('status', 'h264', 'oggtheora', 'duration', )
 
     admin_thumb = admin_thumb_helper()
 
 
-admin.site.register(WebVideo, WebVideoAdmin)
+if get_setting('use_admin'):
+    admin.site.register(WebVideo, WebVideoAdmin)

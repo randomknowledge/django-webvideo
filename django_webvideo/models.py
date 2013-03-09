@@ -122,6 +122,8 @@ class WebVideo(models.Model):
             except WebVideo.DoesNotExist:
                 pass
         if old_video != self.video:
+            self.converted.all().delete()
+            self.screen.all().delete()
             super(WebVideo, self).save(force_insert, force_update, using, update_fields)
             _set_meta(self)
             self.create_screen_images()

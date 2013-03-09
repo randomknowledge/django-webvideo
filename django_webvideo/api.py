@@ -1,6 +1,5 @@
 # coding=utf-8
 from tastypie.cache import SimpleCache
-from tastypie.exceptions import Unauthorized
 from tastypie.resources import ModelResource
 from tastypie import fields
 from tastypie.authentication import SessionAuthentication
@@ -57,4 +56,4 @@ class WebVideoResource(MultipartResource, ModelResource):
         authorization = WebVideoAuthorization()
         cache = SimpleCache(timeout=300)
         throttle = CacheThrottle(throttle_at=50, timeframe=60)
-        serializer = Serializer(formats=['json',])
+        serializer = Serializer(formats=['json', ])

@@ -2,8 +2,14 @@
 ___
 `django-webvideo` is a [Django](https://www.djangoproject.com/) module to convert videos into web video formats.
 Converting is handled by [ffmpeg](http://www.ffmpeg.org/) and queued with [rq](http://python-rq.org/).
-By now `django-webvideo` can convert to h264, ogg-vorbis and webm.
-`django-webvideo` will also create 3 screenshots of each video.
+By now `django-webvideo` can convert to h264, ogg-vorbis and webm in 4 different qualities:
+* **original**: convert video with similar bitrate as the original one (max bitrate defined in settings) and keep video dimensions
+* **high**: convert video to 1080p (will only happen if original bitrate is high enough)
+* **semi-high**: convert video to 720p (will only happen if original bitrate is high enough)
+* **medium**: convert video to 480p (will only happen if original bitrate is high enough)
+* **low**: convert video to 360p
+
+`django-webvideo` will also create a configurable amount of screenshots of each video.
 
 ____
 ## Requirements
@@ -44,6 +50,7 @@ The following settings can be added to your django settings (these are also the 
         'upload_to': 'videos',  # upload_to parameter for unconverted videos
         'convert_to': 'videos/converted',  # upload_to parameter for converted videos
         'screens_to': 'videos/screens',  # upload_to parameter for video screenshots
+        'num_screens': 3,  # Number of video screenshots to create
         'ffmpeg': {
             'binary': 'ffmpeg',  # path to ffmpeg binary
             'convert_settings': {

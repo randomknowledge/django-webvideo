@@ -6,6 +6,7 @@ DEFAULT_SETTINGS = {
     'upload_to': 'videos',  # upload_to parameter for unconverted videos
     'convert_to': 'videos/converted',  # upload_to parameter for converted videos
     'screens_to': 'videos/screens',  # upload_to parameter for video screenshots
+    'num_screens': 3,  # Number of video screenshots to create
     'ffmpeg': {
         'binary': 'ffmpeg',  # path to ffmpeg binary
         'convert_settings': {

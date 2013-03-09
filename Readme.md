@@ -2,7 +2,7 @@
 ___
 `django-webvideo` is a [Django](https://www.djangoproject.com/) module to convert videos into web video formats.
 Converting is handled by [ffmpeg](http://www.ffmpeg.org/) and queued with [rq](http://python-rq.org/).
-By now `django-webvideo` can convert to h264, ogg-vorbis and webm in 4 different qualities:
+By now `django-webvideo` can convert to **h264**, **ogg-vorbis** and **webm** in 4 different qualities:
 * **original**: convert video with similar bitrate as the original one (max bitrate defined in settings) and keep video dimensions
 * **high**: convert video to 1080p (will only happen if original bitrate is high enough)
 * **semi-high**: convert video to 720p (will only happen if original bitrate is high enough)

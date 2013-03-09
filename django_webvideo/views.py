@@ -16,3 +16,10 @@ def test(request):
             'video': video
         }
     )
+
+
+def upload_test(request):
+    return render(
+        request,
+        'django_webvideo/upload_test.html',
+    )

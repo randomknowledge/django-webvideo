@@ -6,8 +6,8 @@ from django_webvideo.models import WebVideo
 def test(request):
     video = None
     videos = WebVideo.objects.all()
-    if len(videos) > 0:
-        video = videos[0]
+    if len(videos) > 1:
+        video = videos[1]
 
     return render(
         request,

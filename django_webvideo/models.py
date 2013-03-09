@@ -2,7 +2,7 @@
 import re
 import subprocess
 from django.conf import settings
-from django_webvideo.video import convert_video, video_info, create_screen_image
+from django_webvideo.video import convert_video, video_info, create_screen_image, video_metadata
 import os
 from django.db import models
 from django_webvideo.settings import get_setting
@@ -17,7 +17,7 @@ def _get_video_paths(infile, codec):
 
     basename, _ = os.path.splitext(os.path.basename(infile))
     paths = {}
-    for quality in constants.VIDEO_QUALITIES:
+    for quality in constants.VIDEO_QUALITIES + ('original',):
         rel = os.path.join(
             get_setting('convert_to'),
             "{0}.{1}.{2}.{3}".format(basename, codec, quality, ext)
@@ -48,128 +48,140 @@ def _get_image_paths(infile, n):
 
 
 def _convert_single(web_video, codec, quality):
-    try:
-        web_video._convert_single(codec, quality)
-    except subprocess.CalledProcessError:
-        web_video.status = constants.VIDEO_STATE_ERROR
-        web_video.save()
+    web_video._convert_single(codec, quality)
 
 
-class WebVideo(models.Model):
-    original = models.FileField(upload_to=get_setting('upload_to'))
+def _set_meta(video_obj, save=False):
+    meta = video_metadata(video_obj.video.path)
+    video_obj.duration = meta.get('duration')
+    video_obj.width = meta.get('width')
+    video_obj.height = meta.get('height')
+    video_obj.bitrate = meta.get('bitrate')
+    video_obj.framerate = meta.get('framerate')
+    if save:
+        video_obj.save()
 
-    video_h264_1080p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    video_ogv_1080p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    video_webm_1080p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
 
-    video_h264_720p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    video_ogv_720p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    video_webm_720p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+class VideoScreen(models.Model):
+    video = models.ForeignKey('WebVideo', related_name='screen')
+    image = models.ImageField(upload_to=get_setting('screens_to'))
+    num = models.IntegerField(max_length=2)
 
-    video_h264_480p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    video_ogv_480p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    video_webm_480p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    class Meta:
+        unique_together = ('video', 'num', )
 
-    video_h264_360p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    video_ogv_360p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
-    video_webm_360p = models.FileField(upload_to=get_setting('convert_to'), blank=True, null=True, editable=False)
+    def __unicode__(self):
+        return "{0}, Screen {1}".format(self.video.video, self.num)
+
+
+class ConvertedVideo(models.Model):
+    video = models.FileField(upload_to=get_setting('convert_to'))
+    original = models.ForeignKey('WebVideo', related_name='converted')
+    codec = models.CharField(max_length=20, choices=constants.VIDEO_CODEC_CHOICES)
+    quality = models.CharField(max_length=20, choices=constants.VIDEO_QUALITY_CHOICES)
+    duration = models.FloatField(default=0.0, verbose_name=_(u"Duration in seconds"))
+    width = models.IntegerField(default=0)
+    height = models.IntegerField(default=0)
+    bitrate = models.FloatField(default=0.0, verbose_name=_(u"Bitrate in kb/s"))
+    framerate = models.FloatField(default=29.92)
 
     status = models.SmallIntegerField(
         choices=constants.VIDEO_STATE_CHOICES, default=constants.VIDEO_STATE_PENDING, editable=False
     )
+
+    class Meta:
+        unique_together = ('original', 'codec', 'quality', )
+
+    def __unicode__(self):
+        return "{0} ({1}, {2})".format(self.video, self.codec, self.quality)
+
+
+class WebVideo(models.Model):
+    video = models.FileField(upload_to=get_setting('upload_to'))
     duration = models.FloatField(default=0.0, verbose_name=_(u"Duration in seconds"))
-    screen_1 = models.ImageField(upload_to=get_setting('screens_to'), blank=True, null=True)
-    screen_2 = models.ImageField(upload_to=get_setting('screens_to'), blank=True, null=True)
-    screen_3 = models.ImageField(upload_to=get_setting('screens_to'), blank=True, null=True)
+    width = models.IntegerField(default=0)
+    height = models.IntegerField(default=0)
+    bitrate = models.FloatField(default=0.0, verbose_name=_(u"Bitrate in kb/s"))
+    framerate = models.FloatField(default=29.92)
+
+    @property
+    def status(self):
+        if self.converted.all().count() == 0:
+            return constants.VIDEO_STATE_PENDING
+        else:
+            return constants.VIDEO_STATE_SUCCESS
+
+    def __unicode__(self):
+        return self.video.url
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         old_video = None
         if self.pk is not None:
             try:
-                old_video = WebVideo.objects.get(pk=self.pk).original
+                old_video = WebVideo.objects.get(pk=self.pk).video
             except WebVideo.DoesNotExist:
                 pass
-        if old_video != self.original:
+        if old_video != self.video:
             super(WebVideo, self).save(force_insert, force_update, using, update_fields)
-            self.duration = self._get_calculated_duration()
+            _set_meta(self)
             self.create_screen_images()
             self.convert()
         super(WebVideo, self).save(force_insert, force_update, using, update_fields)
 
-    def _get_calculated_duration(self):
-        info = video_info(self.original.path)
-        if not info:
-            return 0.0
-        m = re.search(r'Duration: (?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>[\d\.]+)', info)
-
-        if m:
-            return float(m.group('hours')) * 3600 + float(m.group('minutes')) * 60 + float(m.group('seconds'))
-        return 0.0
-
     def get_screen(self, num=1):
-        return getattr(self, 'screen_{0}'.format(num))
+        try:
+            return self.screen.get(video=self, num=num)
+        except VideoScreen.DoesNotExist:
+            return None
 
     def get_video(self, codec, quality):
-        return getattr(self, 'video_{0}_{1}'.format(codec, quality))
+        try:
+            return self.converted.get(original=self, codec=codec, quality=quality)
+        except ConvertedVideo.DoesNotExist:
+            return None
 
     def convert(self):
         if self.status != constants.VIDEO_STATE_PENDING:
             return
-        self.status = constants.VIDEO_STATE_INPROGRESS
-        self.save()
         for codec in constants.VIDEO_CODECS.keys():
             for quality in constants.VIDEO_QUALITIES:
-                queue.enqueue(_convert_single, self, codec, quality)
+                minrate = constants.VIDEO_QUALITY_MIN_BITRATES[quality]
+                if self.bitrate > 0 and self.bitrate >= minrate:
+                    queue.enqueue(_convert_single, self, codec, quality)
+            queue.enqueue(_convert_single, self, codec, 'original')
 
     def _convert_single(self, codec, quality):
-        paths = _get_video_paths(self.original.path, codec)[quality]
-        if convert_video(self.original.path, paths.get('absolute'), codec, quality):
+        paths = _get_video_paths(self.video.path, codec)[quality]
+
+        conv = ConvertedVideo(original=self, codec=codec, quality=quality)
+
+        if convert_video(self.video.path, paths.get('absolute'), codec, quality, self.bitrate, self.width, self.height):
             # get object from db to prevent "no-save" bug in rq
-            obj = WebVideo.objects.get(pk=self.pk)
-            obj.get_video(codec, quality).name = paths.get('relative')
-            success = True
-            for c in constants.VIDEO_CODECS.keys():
-                for q in constants.VIDEO_QUALITIES:
-                    success &= bool(obj.get_video(c, q))
-            if success:
-                obj.status = constants.VIDEO_STATE_SUCCESS
-            obj.save()
+            conv.video.name = paths.get('relative')
+            conv.status = constants.VIDEO_STATE_SUCCESS
+            _set_meta(conv)
+            conv.save()
             return True
-        return False
+        else:
+            conv.status = constants.VIDEO_STATE_ERROR
+            conv.save()
+            return False
 
     def create_screen_images(self):
         if self.duration == 0:
             return
-        out1_rel, out1_abs = _get_image_paths(self.original.path, 1)
-        out2_rel, out2_abs = _get_image_paths(self.original.path, 2)
-        out3_rel, out3_abs = _get_image_paths(self.original.path, 3)
 
         dur = self.duration
-        first_frame = round(min(dur * 0.5, 0.5), 2)
-        second_frame = round(dur * 0.3, 2)
-        third_frame = round(dur * 0.7, 2)
 
-        if create_screen_image(self.original.path, out1_abs, first_frame):
-            self.screen_1.name = out1_rel
-        if create_screen_image(self.original.path, out2_abs, second_frame):
-            self.screen_2.name = out2_rel
-        if create_screen_image(self.original.path, out3_abs, third_frame):
-            self.screen_3.name = out3_rel
+        for num in range(1, constants.NUM_SCREENS + 1):
+            relative, absolute = _get_image_paths(self.video.path, num)
+            if num == 1:
+                frame = round(min(dur * 0.5, 0.5), 2)
+            else:
+                frame = round(dur / constants.NUM_SCREENS * (num * 0.9), 2)
+            if create_screen_image(self.video.path, absolute, frame):
+                VideoScreen(video=self, image=relative, num=num).save()
 
-    def get_resized_screen(self, screen=1, width=0, height=0, upscale=True):
-        from easy_thumbnails.files import get_thumbnailer
-        from easy_thumbnails.exceptions import InvalidImageFormatError
-
-        options = {
-            'size': (width, height),
-            'upscale': upscale,
-            'crop': width and height,
-        }
-        img = self.get_screen(screen)
-        if img:
-            try:
-                return get_thumbnailer(img).get_thumbnail(options).url
-            except (InvalidImageFormatError, IOError):
-                pass
-
-        return self.image.url
+    def converted_list_admin(self):
+        return ["{0}, {1}".format(c.codec, c.quality) for c in self.converted.all()]
+    converted_list_admin.short_description = _('Variants')

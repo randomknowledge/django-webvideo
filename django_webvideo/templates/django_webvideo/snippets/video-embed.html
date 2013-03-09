@@ -1,5 +1,9 @@
+{% if not files.0 %}
+    <img src="{{ poster }}" width="{{ width }}" height="{{ height }}"/>
+{% else %}
 <video {{ attributes }} width="{{ width }}" height="{{ height }}" preload="{{ preload }}" poster="{{ poster }}"{% if controls %} controls{% endif %}{% if autoplay %} autoplay="autoplay"{% endif %}>
     {% for file in files %}
         <source src="{{ file.obj.url }}" type='{{ file.mime }}'>
     {% endfor %}
 </video>
+{% endif %}

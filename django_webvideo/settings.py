@@ -14,70 +14,73 @@ DEFAULT_SETTINGS = {
                     # ffmpeg call for converting to h264 (first pass)
                     "{ffmpeg} -y -i {infile} -vcodec libx264 -vprofile high -b:v {video_bitrate} "
                     "-maxrate {video_max_bitrate} -bufsize {video_bufsize} "
-                    "-vf scale={video_width}:{video_height} -bf 2 -g 100 -an -threads 0 -pass 1 -f mp4 /dev/null",
+                    "{video_size} -bf 2 -g 100 -an -threads 0 -pass 1 -f mp4 /dev/null",
 
                     # ffmpeg call for converting to h264 (second pass)
                     "{ffmpeg} -y -i {infile} -vcodec libx264 -vprofile high -b:v {video_bitrate} "
                     "-maxrate {video_max_bitrate} -bufsize {video_bufsize} "
-                    "-vf scale={video_width}:{video_height} -bf 2 -g 100 -threads 0 -pass 2 -acodec libfaac -ar 48000 "
+                    "{video_size} -bf 2 -g 100 -threads 0 -pass 2 -acodec libfaac -ar 48000 "
                     "-b:a 128k -ac 2 -f mp4 {outfile}"
                 ],
                 'ogv': [
                     # ffmpeg call for converting to ogv (first pass)
                     "{ffmpeg} -y -i {infile} -vcodec libtheora -b:v {video_bitrate} "
                     "-maxrate {video_max_bitrate} -bufsize {video_bufsize} "
-                    "-vf scale={video_width}:{video_height} -bf 2 -g 100 -an -threads 0 -pass 1 -f ogg /dev/null",
+                    "{video_size} -bf 2 -g 100 -an -threads 0 -pass 1 -f ogg /dev/null",
 
                     # ffmpeg call for converting to ogv (second pass)
                     "{ffmpeg} -y -i {infile} -vcodec libtheora -b:v {video_bitrate} "
                     "-maxrate {video_max_bitrate} -bufsize {video_bufsize} "
-                    "-vf scale={video_width}:{video_height} -bf 2 -g 100 -threads 0 -pass 2 -acodec libvorbis "
+                    "{video_size} -bf 2 -g 100 -threads 0 -pass 2 -acodec libvorbis "
                     "-ar 48000 -b:a 128k -ac 2 -f ogg {outfile}",
                 ],
                 'webm': [
                     # ffmpeg call for converting to webm (first pass)
                     "{ffmpeg} -y -i {infile} -codec:v libvpx -quality good -cpu-used 0 -b:v {video_bitrate} "
                     "-qmin 10 -qmax 42 -maxrate {video_max_bitrate} -bufsize {video_bufsize} "
-                    "-vf scale={video_width}:{video_height} -bf 2 -g 100 -an -threads 4 -pass 1 -f webm /dev/null",
+                    "{video_size} -bf 2 -g 100 -an -threads 4 -pass 1 -f webm /dev/null",
 
                     # ffmpeg call for converting to webm (second pass)
                     "{ffmpeg} -y -i {infile} -codec:v libvpx -quality good -cpu-used 0 -b:v {video_bitrate} "
                     "-qmin 10 -qmax 42 -maxrate {video_max_bitrate} -bufsize {video_bufsize} "
-                    "-vf scale={video_width}:{video_height} -bf 2 -g 100 -threads 4 -pass 2 -codec:a libvorbis "
+                    "{video_size} -bf 2 -g 100 -threads 4 -pass 2 -codec:a libvorbis "
                     "-ar 48000 -b:a 128k -ac 2 -f webm {outfile}",
                 ],
             },
+            # Settings for 'original' version (will be passed to commands above)
+            'original': {
+                'video_bitrate': '1792k',  # will be min(video_bitrate, original_bitrate)
+                'video_max_bitrate': '',  # will be video_bitrate * 2
+                'video_bufsize': '',  # will be video_bitrate * 2
+                'video_size': '-vf scale={original_width}:{original_height}'
+            },
             # High Quality settings (will be passed to commands above)
-            '1080p': {
+            'high': {
                 'video_bitrate': '1792k',
                 'video_max_bitrate': '4000k',
                 'video_bufsize': '4000k',
-                'video_width': '1920',
-                'video_height': '1080',
+                'video_size': '-vf scale=1920:1080'
             },
             # Semi-High Quality settings (will be passed to commands above)
-            '720p': {
+            'semi-high': {
                 'video_bitrate': '1000k',
                 'video_max_bitrate': '2000k',
                 'video_bufsize': '2000k',
-                'video_width': '1280',
-                'video_height': '720',
+                'video_size': '-vf scale=1280:720'
             },
             # Medium Quality settings (will be passed to commands above)
-            '480p': {
+            'medium': {
                 'video_bitrate': '500k',
                 'video_max_bitrate': '1000k',
                 'video_bufsize': '1000k',
-                'video_width': '854',
-                'video_height': '480',
+                'video_size': '-vf scale=854:480'
             },
             # Low Quality settings (will be passed to commands above)
-            '360p': {
+            'low': {
                 'video_bitrate': '300k',
                 'video_max_bitrate': '600k',
                 'video_bufsize': '600k',
-                'video_width': '640',
-                'video_height': '360',
+                'video_size': '-vf scale=640:360'
             },
         },
     },

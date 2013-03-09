@@ -9,7 +9,7 @@ By now `django-webvideo` can convert to **h264**, **ogg-vorbis** and **webm** in
 * **medium**: convert video to 480p (will only happen if original bitrate is high enough)
 * **low**: convert video to 360p
 
-`django-webvideo` will also create a configurable amount of screenshots of each video.
+`django-webvideo` will also create a configurable amount of screenshots of each video wich can be used as poster images.
 
 ____
 ## Requirements

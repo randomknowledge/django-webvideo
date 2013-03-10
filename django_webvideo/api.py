@@ -13,6 +13,13 @@ class WebVideoAuthorization(DjangoAuthorization):
     pass
 
 
+class WebVideoAuthentication(SessionAuthentication):
+    def is_authenticated(self, request, **kwargs):
+        if request.META.has_key('CSRF_COOKIE') and not request.META.has_key('HTTP_X_CSRFTOKEN'):
+            request.META["HTTP_X_CSRFTOKEN"] = request.META.get('CSRF_COOKIE', '')
+        return super(WebVideoAuthentication, self).is_authenticated(request, **kwargs)
+
+
 class MultipartResource(object):
     def deserialize(self, request, data, format=None):
         if not format:
@@ -52,7 +59,7 @@ class WebVideoResource(MultipartResource, ModelResource):
             'duration': ['exact', 'gt', 'gte', 'lt', 'lte', 'range'],
         }
 
-        authentication = SessionAuthentication()
+        authentication = WebVideoAuthentication()
         authorization = WebVideoAuthorization()
         cache = SimpleCache(timeout=300)
         throttle = CacheThrottle(throttle_at=50, timeframe=60)

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<form method="post" action="/api/v1/video/" enctype="multipart/form-data">
+{% csrf_token %}
+<input type="file" name="video"/>
+<input type="submit"/>
+</form>
+</body>
+</html>

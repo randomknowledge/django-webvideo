@@ -44,7 +44,7 @@ def admin_thumb_helper_webvideo(image_object=True, for_admin=True, height=100, w
     return admin_thumb
 
 
-def admin_thumb_helper_single(image_object=True, for_admin=True, height=100, width=0):
+def admin_thumb_helper_videoscreen(image_object=True, for_admin=True, height=100, width=0):
     def admin_thumb(*args):
         obj = args[1 if for_admin else 0]
 
@@ -64,12 +64,35 @@ def admin_thumb_helper_single(image_object=True, for_admin=True, height=100, wid
     return admin_thumb
 
 
+def admin_thumb_helper_convertedvideo(image_object=True, for_admin=True, height=50, width=0):
+    def admin_thumb(*args):
+        obj = args[1 if for_admin else 0]
+
+        s = ""
+        try:
+            screens = obj.original.screen.all()
+            if len(screens) > 1:
+                screen = screens[1]
+            else:
+                screen = screens[0]
+            s = "%s" % ('<a href="%s" target="_blank"><img height="%s" src="%s" /></a>' % (
+                screen.image.url, height, get_resized_image(screen.image, height=height, width=width)))
+        except Exception:
+            pass
+
+        return s
+    admin_thumb.allow_tags = True
+    admin_thumb.short_description = 'Vorschau'
+
+    return admin_thumb
+
+
 class VideoScreenAdmin(admin.ModelAdmin):
     list_display = ('video', 'admin_thumb', 'num', )
     fields = ('video', 'image', 'admin_thumb', 'num', )
     readonly_fields = ('video', 'admin_thumb', 'num', )
 
-    admin_thumb = admin_thumb_helper_single()
+    admin_thumb = admin_thumb_helper_videoscreen()
 
 
 class WebVideoAdmin(admin.ModelAdmin):
@@ -80,7 +103,16 @@ class WebVideoAdmin(admin.ModelAdmin):
     admin_thumb = admin_thumb_helper_webvideo()
 
 
+class ConvertedVideoAdmin(admin.ModelAdmin):
+    list_display = ('video', 'admin_thumb', 'original', 'codec', 'quality', 'duration', 'width', 'height', 'bitrate', 'framerate', )
+    fields = ('video', 'admin_thumb', 'original', 'codec', 'quality', 'duration', 'width', 'height', 'bitrate', 'framerate', )
+    readonly_fields = ('admin_thumb', 'original', 'codec', 'quality', 'duration', 'width', 'height', 'bitrate', 'framerate', )
+    list_filter = ('codec', 'quality', )
+
+    admin_thumb = admin_thumb_helper_convertedvideo()
+
+
 if get_setting('use_admin'):
     admin.site.register(WebVideo, WebVideoAdmin)
     admin.site.register(VideoScreen, VideoScreenAdmin)
-    admin.site.register(ConvertedVideo)
+    admin.site.register(ConvertedVideo, ConvertedVideoAdmin)

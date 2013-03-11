@@ -1,5 +1,4 @@
 # coding=utf-8
-import os
 from math import log
 from django.core.urlresolvers import reverse
 
@@ -18,10 +17,6 @@ def sizeof_fmt(num):
         return '0 bytes'
     if num == 1:
         return '1 byte'
-
-
-def filesize_human_readable(path):
-    return sizeof_fmt(os.stat(path).st_size)
 
 
 def url_to_edit_object(obj):

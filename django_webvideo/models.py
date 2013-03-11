@@ -51,6 +51,7 @@ def _convert_single(web_video, codec, quality):
 
 def _set_meta(video_obj, save=False):
     meta = video_metadata(video_obj.video.path)
+    video_obj.filesize = os.stat(video_obj.video.path).st_size
     video_obj.duration = meta.get('duration')
     video_obj.width = meta.get('width')
     video_obj.height = meta.get('height')
@@ -77,6 +78,7 @@ class ConvertedVideo(models.Model):
     original = models.ForeignKey('WebVideo', related_name='converted')
     codec = models.CharField(max_length=20, choices=constants.VIDEO_CODEC_CHOICES)
     quality = models.CharField(max_length=20, choices=constants.VIDEO_QUALITY_CHOICES)
+    filesize = models.IntegerField(default=0)
     duration = models.FloatField(default=0.0, verbose_name=_(u"Duration in seconds"))
     width = models.IntegerField(default=0)
     height = models.IntegerField(default=0)
@@ -96,6 +98,7 @@ class ConvertedVideo(models.Model):
 
 class WebVideo(models.Model):
     video = models.FileField(upload_to=get_setting('upload_to'))
+    filesize = models.IntegerField(default=0)
     duration = models.FloatField(default=0.0, verbose_name=_(u"Duration in seconds"))
     width = models.IntegerField(default=0)
     height = models.IntegerField(default=0)

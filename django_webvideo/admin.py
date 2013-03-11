@@ -4,7 +4,7 @@ from django_webvideo.models import WebVideo, VideoScreen, ConvertedVideo
 from django_webvideo.settings import get_setting
 from django_webvideo.templatetags.webvideo_tags import video_tag
 from django.utils.translation import ugettext_lazy as _
-from django_webvideo.utils import filesize_human_readable, url_to_edit_object
+from django_webvideo.utils import sizeof_fmt, url_to_edit_object
 
 
 def get_resized_image(image, width=0, height=0, upscale=True):
@@ -76,8 +76,9 @@ def admin_video_helper(obj=True, for_admin=True):
 def admin_filesize_helper(obj=True, for_admin=True):
     def admin_filesize(*args):
         obj = args[1 if for_admin else 0]
-        return filesize_human_readable(obj.video.path)
+        return sizeof_fmt(obj.filesize)
     admin_filesize.short_description = _('Filesize')
+    admin_filesize.admin_order_field = 'filesize'
     return admin_filesize
 
 
@@ -85,14 +86,15 @@ class ConvertedVideoInline(admin.StackedInline):
     model = ConvertedVideo
     extra = 0
 
-    fields = ('video', 'admin_video', 'filezize', 'codec', 'quality', 'width', 'height', 'bitrate', )
-    readonly_fields = ('admin_video', 'filezize', 'codec', 'quality', 'width', 'height', 'bitrate', )
+    fields = ('video', 'admin_video', 'admin_filesize', 'codec', 'quality', 'width', 'height', 'bitrate', )
+    readonly_fields = ('admin_video', 'admin_filesize', 'codec', 'quality', 'width', 'height', 'bitrate', )
     admin_video = admin_video_helper()
-    filezize = admin_filesize_helper()
+    admin_filesize = admin_filesize_helper()
 
 
 class VideoScreenAdmin(admin.ModelAdmin):
     list_display = ('video', 'admin_thumb_list', 'num', )
+    list_display_links = ('video', 'num', )
     fields = ('video', 'image', 'admin_thumb', 'num', )
     readonly_fields = ('video', 'admin_thumb', 'num', )
 
@@ -104,7 +106,16 @@ class WebVideoAdmin(admin.ModelAdmin):
     list_display = (
         'video',
         'admin_thumb',
-        'filezize',
+        'admin_filesize',
+        'duration',
+        'width',
+        'height',
+        'bitrate',
+        'framerate',
+    )
+    list_display_links = (
+        'video',
+        'admin_filesize',
         'duration',
         'width',
         'height',
@@ -114,7 +125,7 @@ class WebVideoAdmin(admin.ModelAdmin):
     fields = (
         'video',
         'admin_video',
-        'filezize',
+        'admin_filesize',
         'duration',
         'width',
         'height',
@@ -124,7 +135,7 @@ class WebVideoAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         'admin_video',
-        'filezize',
+        'admin_filesize',
         'duration',
         'width',
         'height',
@@ -136,7 +147,7 @@ class WebVideoAdmin(admin.ModelAdmin):
 
     admin_thumb = admin_thumb_helper_video(width=100, height=50)
     admin_video = admin_video_helper()
-    filezize = admin_filesize_helper()
+    admin_filesize = admin_filesize_helper()
 
 
 class ConvertedVideoAdmin(admin.ModelAdmin):
@@ -144,7 +155,19 @@ class ConvertedVideoAdmin(admin.ModelAdmin):
         'video',
         'admin_thumb',
         'original',
-        'filezize',
+        'admin_filesize',
+        'codec',
+        'quality',
+        'duration',
+        'width',
+        'height',
+        'bitrate',
+        'framerate',
+    )
+    list_display_links = (
+        'video',
+        'original',
+        'admin_filesize',
         'codec',
         'quality',
         'duration',
@@ -157,7 +180,7 @@ class ConvertedVideoAdmin(admin.ModelAdmin):
         'video',
         'admin_video',
         'original',
-        'filezize',
+        'admin_filesize',
         'codec',
         'quality',
         'duration',
@@ -169,7 +192,7 @@ class ConvertedVideoAdmin(admin.ModelAdmin):
     readonly_fields = (
         'admin_video',
         'original',
-        'filezize',
+        'admin_filesize',
         'codec',
         'quality',
         'duration',
@@ -182,7 +205,7 @@ class ConvertedVideoAdmin(admin.ModelAdmin):
 
     admin_thumb = admin_thumb_helper_video(width=50, height=30)
     admin_video = admin_video_helper()
-    filezize = admin_filesize_helper()
+    admin_filesize = admin_filesize_helper()
 
 
 if get_setting('use_admin'):

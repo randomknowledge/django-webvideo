@@ -1,6 +1,7 @@
 # coding=utf-8
-from math import log
 import os
+from math import log
+from django.core.urlresolvers import reverse
 
 unit_list = zip(['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2])
 
@@ -20,5 +21,8 @@ def sizeof_fmt(num):
 
 
 def filesize_human_readable(path):
-    statinfo = os.stat(path)
-    return sizeof_fmt(statinfo.st_size)
+    return sizeof_fmt(os.stat(path).st_size)
+
+
+def url_to_edit_object(obj):
+    return reverse('admin:{0}_{1}_change'.format(obj._meta.app_label,  obj._meta.module_name),  args=[obj.id], )

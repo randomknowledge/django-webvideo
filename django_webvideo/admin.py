@@ -4,7 +4,7 @@ from django_webvideo.models import WebVideo, VideoScreen, ConvertedVideo
 from django_webvideo.settings import get_setting
 from django_webvideo.templatetags.webvideo_tags import video_tag
 from django.utils.translation import ugettext_lazy as _
-from django_webvideo.utils import filesize_human_readable
+from django_webvideo.utils import filesize_human_readable, url_to_edit_object
 
 
 def get_resized_image(image, width=0, height=0, upscale=True):
@@ -15,7 +15,7 @@ def get_resized_image(image, width=0, height=0, upscale=True):
         'size': (width, height),
         'upscale': upscale,
         'crop': width and height,
-        }
+    }
     try:
         return get_thumbnailer(image).get_thumbnail(options).url
     except (InvalidImageFormatError, IOError):
@@ -24,23 +24,21 @@ def get_resized_image(image, width=0, height=0, upscale=True):
     return image.url
 
 
-def admin_thumb_helper_webvideo(image_object=True, for_admin=True, height=100, width=0):
+def admin_thumb_helper_video(obj=True, for_admin=True, height=100, width=0):
     def admin_thumb(*args):
         obj = args[1 if for_admin else 0]
+        vid = obj.original if isinstance(obj, ConvertedVideo) else obj
 
-        s = ""
-        try:
-            screens = obj.screen.all()
-            if len(screens) > 1:
-                screen = screens[1]
-            else:
-                screen = screens[0]
-            s = "%s" % ('<a href="%s" target="_blank"><img height="%s" src="%s" /></a>' % (
-                screen.image.url, height, get_resized_image(screen.image, height=height, width=width)))
-        except Exception:
-            pass
-
-        return s
+        screens = vid.screen.all()
+        if len(screens) > 1:
+            screen = screens[1]
+        else:
+            screen = screens[0]
+        return '<a href="{url}"><img height="{height}" src="{src}" /></a>'.format(
+            url=url_to_edit_object(obj),
+            height=height,
+            src=get_resized_image(screen.image, height=height, width=width)
+        )
     admin_thumb.allow_tags = True
     admin_thumb.short_description = _('Preview')
 
@@ -50,17 +48,12 @@ def admin_thumb_helper_webvideo(image_object=True, for_admin=True, height=100, w
 def admin_thumb_helper_videoscreen(image_object=True, for_admin=True, height=100, width=0):
     def admin_thumb(*args):
         obj = args[1 if for_admin else 0]
-
-        s = ""
-        i = 1
-        try:
-            s = "%s" % ('<a href="%s" target="_blank"><img height="%s" src="%s" /></a>' % (
-                obj.image.url, height, get_resized_image(obj.image, height=height, width=width)))
-        except ValueError:
-            pass
-        i += 1
-
-        return s
+        return '<a href="{url}"><img height="{height}" src="{src}" /></a>'.format(
+            url=url_to_edit_object(obj),
+            height=height,
+            width=width,
+            src=get_resized_image(obj.image, height=height, width=width)
+        )
     admin_thumb.allow_tags = True
     admin_thumb.short_description = _('Preview')
 
@@ -83,35 +76,9 @@ def admin_video_helper(obj=True, for_admin=True):
 def admin_filesize_helper(obj=True, for_admin=True):
     def admin_filesize(*args):
         obj = args[1 if for_admin else 0]
-        if isinstance(obj, ConvertedVideo):
-            return filesize_human_readable(obj.video.path)
-        else:
-            return filesize_human_readable(obj.video.path)
+        return filesize_human_readable(obj.video.path)
     admin_filesize.short_description = _('Filesize')
     return admin_filesize
-
-
-def admin_thumb_helper_convertedvideo(image_object=True, for_admin=True, height=50, width=0):
-    def admin_thumb(*args):
-        obj = args[1 if for_admin else 0]
-
-        s = ""
-        try:
-            screens = obj.original.screen.all()
-            if len(screens) > 1:
-                screen = screens[1]
-            else:
-                screen = screens[0]
-            s = "%s" % ('<a href="%s" target="_blank"><img height="%s" src="%s" /></a>' % (
-                screen.image.url, height, get_resized_image(screen.image, height=height, width=width)))
-        except Exception:
-            pass
-
-        return s
-    admin_thumb.allow_tags = True
-    admin_thumb.short_description = _('Preview')
-
-    return admin_thumb
 
 
 class ConvertedVideoInline(admin.StackedInline):
@@ -125,11 +92,12 @@ class ConvertedVideoInline(admin.StackedInline):
 
 
 class VideoScreenAdmin(admin.ModelAdmin):
-    list_display = ('video', 'admin_thumb', 'num', )
+    list_display = ('video', 'admin_thumb_list', 'num', )
     fields = ('video', 'image', 'admin_thumb', 'num', )
     readonly_fields = ('video', 'admin_thumb', 'num', )
 
-    admin_thumb = admin_thumb_helper_videoscreen()
+    admin_thumb_list = admin_thumb_helper_videoscreen(width=200, height=80)
+    admin_thumb = admin_thumb_helper_videoscreen(height=300)
 
 
 class WebVideoAdmin(admin.ModelAdmin):
@@ -166,7 +134,7 @@ class WebVideoAdmin(admin.ModelAdmin):
     )
     inlines = (ConvertedVideoInline, )
 
-    admin_thumb = admin_thumb_helper_webvideo()
+    admin_thumb = admin_thumb_helper_video(width=100, height=50)
     admin_video = admin_video_helper()
     filezize = admin_filesize_helper()
 
@@ -212,7 +180,7 @@ class ConvertedVideoAdmin(admin.ModelAdmin):
     )
     list_filter = ('codec', 'quality', )
 
-    admin_thumb = admin_thumb_helper_convertedvideo()
+    admin_thumb = admin_thumb_helper_video(width=50, height=30)
     admin_video = admin_video_helper()
     filezize = admin_filesize_helper()
 

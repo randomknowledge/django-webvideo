@@ -34,5 +34,5 @@ setup(
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        ]
+    ]
 )

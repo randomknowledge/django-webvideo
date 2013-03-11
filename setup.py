@@ -24,7 +24,6 @@ setup(
         'easy-thumbnails==1.2',
         'rq==0.3.7',
         'django-tastypie==0.9.12',
-        'django-suit==0.1.6',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

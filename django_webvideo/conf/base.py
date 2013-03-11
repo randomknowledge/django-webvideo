@@ -26,12 +26,8 @@ if platform.system() == 'Darwin':
 
 TEMPLATE_DEBUG = True
 TIME_ZONE = 'Europe/Berlin'
-LANGUAGE_CODE = 'de'
+LANGUAGE_CODE = 'en'
 SITE_ID = 1
-
-LANGUAGES = (
-    ('de', _('German')),
-)
 
 MEDIA_URL = '/media/'
 STATIC_URL = '/static/'
@@ -108,4 +104,20 @@ DJANGO_WEBVIDEO_SETTINGS = {
     'ffmpeg': {
         'binary': '/usr/bin/ffmpeg'
     },
+}
+
+# Django Suit
+SUIT_CONFIG = {
+    'ADMIN_NAME': _('Django Webvideo'),
+    'HEADER_DATE_FORMAT': 'l, j. F Y',
+    'MENU_ICONS': {
+        'sites': 'icon-leaf',
+        'auth': 'icon-lock',
+        'django_webvideo': 'icon-film',
+    },
+    'MENU_EXCLUDE': ('tastypie', 'sites' ),
+    'MENU_ORDER': (
+        ('auth', ('user','group')),
+        ('django_webvideo', ('webvideo','convertedvideo', 'videoscreen')),
+    ),
 }

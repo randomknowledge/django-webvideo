@@ -16,6 +16,7 @@ ____
 * [Django](https://www.djangoproject.com/)
 * [easy-thumbnails](https://github.com/SmileyChris/easy-thumbnails)
 * [rq](http://python-rq.org/)
+* [tastypie](https://github.com/toastdriven/django-tastypie/)
 * [ffmpeg](http://www.ffmpeg.org/) with libx264, libvorbis, libvpx, libfaac and libvorbis
 
 ## Installation

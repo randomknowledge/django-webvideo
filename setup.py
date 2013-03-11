@@ -19,7 +19,6 @@ setup(
     zip_safe=False,
     install_requires=[
         'Django==1.5',
-        'South==0.7.6',
         'PIL==1.1.7',
         'easy-thumbnails==1.2',
         'rq==0.3.7',

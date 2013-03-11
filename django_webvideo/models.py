@@ -1,8 +1,6 @@
 # coding=utf-8
-import re
-import subprocess
 from django.conf import settings
-from django_webvideo.video import convert_video, video_info, create_screen_image, video_metadata
+from django_webvideo.video import convert_video, create_screen_image, video_metadata
 import os
 from django.db import models
 from django_webvideo.settings import get_setting

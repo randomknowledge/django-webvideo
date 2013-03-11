@@ -33,7 +33,7 @@ Download source and install package using pip:
 $ sudo pip install -e git+https://github.com/randomknowledge/django-webvideo.git#egg=django-webvideo
 ```
 
-Add ``tastypie``, ``easy_thumbnails`` and ``django_webvideo`` to your ``INSTALLED_APPS`` setting::
+Add ``tastypie``, ``easy_thumbnails`` and ``django_webvideo`` to your ``INSTALLED_APPS`` setting:
 
     INSTALLED_APPS = (
         ...

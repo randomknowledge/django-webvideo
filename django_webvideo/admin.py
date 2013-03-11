@@ -1,10 +1,14 @@
 # coding: utf-8
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 from django_webvideo.models import WebVideo, VideoScreen, ConvertedVideo
 from django_webvideo.settings import get_setting
 from django_webvideo.templatetags.webvideo_tags import video_tag
 from django.utils.translation import ugettext_lazy as _
 from django_webvideo.utils import sizeof_fmt, url_to_edit_object
+
+
+preview_disclaimer = _("Video is embedded as {codec} only, which is eventually not supported by your webbrowser!")
 
 
 def get_resized_image(image, width=0, height=0, upscale=True):
@@ -64,8 +68,17 @@ def admin_video_helper(obj=True, for_admin=True):
     def admin_video(*args):
         obj = args[1 if for_admin else 0]
         if isinstance(obj, ConvertedVideo):
-            return video_tag(obj.original, quality=obj.quality, preload='meta', width='100%', height='auto',
-                             screen_num=2)
+            return "{disclaimer}{video}".format(
+                disclaimer=mark_safe(
+                    "<p class='text-error'>{text}</p>".format(
+                        text=preview_disclaimer.format(
+                            codec="<strong>{0}</strong>".format(obj.codec)
+                        )
+                    )
+                ),
+                video=video_tag(obj.original, quality=obj.quality, preload='meta', width='100%', height='auto',
+                                screen_num=2, codec=obj.codec)
+            )
         else:
             return video_tag(obj, quality='max', preload='meta', width='100%', height='auto', screen_num=2)
     admin_video.allow_tags = True

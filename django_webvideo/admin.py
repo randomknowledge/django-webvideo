@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django_webvideo.models import WebVideo, VideoScreen, ConvertedVideo
 from django_webvideo.settings import get_setting
+from django_webvideo.templatetags.webvideo_tags import video_tag
 
 
 def get_resized_image(image, width=0, height=0, upscale=True):
@@ -64,6 +65,19 @@ def admin_thumb_helper_videoscreen(image_object=True, for_admin=True, height=100
     return admin_thumb
 
 
+def admin_video_helper(obj=True, for_admin=True):
+    def admin_video(*args):
+        obj = args[1 if for_admin else 0]
+        if isinstance(obj, ConvertedVideo):
+            return video_tag(obj.original, quality=obj.quality, preload='meta', width='100%', height='auto',
+                             screen_num=2)
+        else:
+            return video_tag(obj, quality='max', preload='meta', width='100%', height='auto', screen_num=2)
+    admin_video.allow_tags = True
+    admin_video.short_description = 'Vorschau'
+    return admin_video
+
+
 def admin_thumb_helper_convertedvideo(image_object=True, for_admin=True, height=50, width=0):
     def admin_thumb(*args):
         obj = args[1 if for_admin else 0]
@@ -87,6 +101,15 @@ def admin_thumb_helper_convertedvideo(image_object=True, for_admin=True, height=
     return admin_thumb
 
 
+class ConvertedVideoInline(admin.StackedInline):
+    model = ConvertedVideo
+    extra = 0
+
+    fields = ('video', 'admin_video', 'codec', 'quality', 'width', 'height', 'bitrate', )
+    readonly_fields = ('admin_video', 'codec', 'quality', 'width', 'height', 'bitrate', )
+    admin_video = admin_video_helper()
+
+
 class VideoScreenAdmin(admin.ModelAdmin):
     list_display = ('video', 'admin_thumb', 'num', )
     fields = ('video', 'image', 'admin_thumb', 'num', )
@@ -97,19 +120,22 @@ class VideoScreenAdmin(admin.ModelAdmin):
 
 class WebVideoAdmin(admin.ModelAdmin):
     list_display = ('video', 'admin_thumb', 'duration', 'width', 'height', 'bitrate', 'framerate', )
-    fields = ('video', 'admin_thumb', 'duration', 'width', 'height', 'bitrate', 'framerate', 'converted_list_admin', )
-    readonly_fields = ('admin_thumb', 'duration', 'width', 'height', 'bitrate', 'framerate', 'converted_list_admin', )
+    fields = ('video', 'admin_video', 'duration', 'width', 'height', 'bitrate', 'framerate', 'converted_list_admin', )
+    readonly_fields = ('admin_video', 'duration', 'width', 'height', 'bitrate', 'framerate', 'converted_list_admin', )
+    inlines = (ConvertedVideoInline, )
 
     admin_thumb = admin_thumb_helper_webvideo()
+    admin_video = admin_video_helper()
 
 
 class ConvertedVideoAdmin(admin.ModelAdmin):
     list_display = ('video', 'admin_thumb', 'original', 'codec', 'quality', 'duration', 'width', 'height', 'bitrate', 'framerate', )
-    fields = ('video', 'admin_thumb', 'original', 'codec', 'quality', 'duration', 'width', 'height', 'bitrate', 'framerate', )
-    readonly_fields = ('admin_thumb', 'original', 'codec', 'quality', 'duration', 'width', 'height', 'bitrate', 'framerate', )
+    fields = ('video', 'admin_video', 'original', 'codec', 'quality', 'duration', 'width', 'height', 'bitrate', 'framerate', )
+    readonly_fields = ('admin_video', 'original', 'codec', 'quality', 'duration', 'width', 'height', 'bitrate', 'framerate', )
     list_filter = ('codec', 'quality', )
 
     admin_thumb = admin_thumb_helper_convertedvideo()
+    admin_video = admin_video_helper()
 
 
 if get_setting('use_admin'):

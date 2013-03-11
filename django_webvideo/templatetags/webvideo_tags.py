@@ -8,8 +8,8 @@ register = Library()
 
 
 @register.simple_tag
-def video_tag(video, quality='max', width=None, height=None, preload="auto", autoplay=False, controls=True, attributes="",
-              screen_num=1):
+def video_tag(video, quality='max', width=None, height=None, preload="auto", autoplay=False, controls=True,
+              attributes="", screen_num=1):
     screen = video.get_screen(screen_num)
 
     converted = video.converted.all()

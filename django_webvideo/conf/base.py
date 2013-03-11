@@ -74,8 +74,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 ROOT_URLCONF = 'urls'
 
 INSTALLED_APPS = [
-    'suit',
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -107,17 +105,23 @@ DJANGO_WEBVIDEO_SETTINGS = {
 }
 
 # Django Suit
-SUIT_CONFIG = {
-    'ADMIN_NAME': _('Django Webvideo'),
-    'HEADER_DATE_FORMAT': 'l, j. F Y',
-    'MENU_ICONS': {
-        'sites': 'icon-leaf',
-        'auth': 'icon-lock',
-        'django_webvideo': 'icon-film',
-    },
-    'MENU_EXCLUDE': ('tastypie', 'sites' ),
-    'MENU_ORDER': (
-        ('auth', ('user','group')),
-        ('django_webvideo', ('webvideo','convertedvideo', 'videoscreen')),
-    ),
-}
+try:
+    from suit import VERSION
+except ImportError:
+    pass
+else:
+    INSTALLED_APPS = ['suit', ] + INSTALLED_APPS
+    SUIT_CONFIG = {
+        'ADMIN_NAME': _('Django Webvideo'),
+        'HEADER_DATE_FORMAT': 'l, j. F Y',
+        'MENU_ICONS': {
+            'sites': 'icon-leaf',
+            'auth': 'icon-lock',
+            'django_webvideo': 'icon-film',
+        },
+        'MENU_EXCLUDE': ('tastypie', 'sites' ),
+        'MENU_ORDER': (
+            ('auth', ('user','group')),
+            ('django_webvideo', ('webvideo','convertedvideo', 'videoscreen')),
+        ),
+    }

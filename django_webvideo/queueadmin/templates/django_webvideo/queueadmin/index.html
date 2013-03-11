@@ -1,0 +1,48 @@
+{% extends "django_webvideo/queueadmin/base.html" %}
+{% load i18n %}
+{% block content %}
+
+    {% block workers %}
+        {% if workers %}
+            <h3>{% trans 'Workers' %}</h3>
+            <ul>
+                {% for worker in workers %}
+                    <li>
+                        {{ worker.name }}
+                        {% if worker.queues %}
+                            <ul>
+                                {% for queue in worker.queues %}
+                                    <li>{{ queue }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <h3 class="error">{% trans 'No Workers running!' %}</h3>
+        {% endif %}
+    {% endblock %}
+
+    {% block queues %}
+    {% if queues %}
+        <h3>{% trans 'Queues' %}</h3>
+        <ul>
+        {% for queue in queues %}
+            <li>
+                {{ queue.name }}
+                {% if queue.jobs %}
+                    <ul>
+                    {% for job in queue.jobs %}
+                        <li>{{ job.id }}<br/>{% trans 'Convert: ' %}{{ job.args.0 }} ({{ job.args.1 }}, {{ job.args.2 }}) - {{ job.status }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <h3 class="error">{% trans 'No Queues found!' %}</h3>
+    {% endif %}
+    {% endblock %}
+{% endblock %}

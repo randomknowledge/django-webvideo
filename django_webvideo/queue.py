@@ -11,9 +11,13 @@ redis_conn = Redis(
 )
 
 
+def get_queue_object():
+    return Queue(connection=redis_conn, name=get_queue_name(), default_timeout=get_setting('redis', 'timeout'))
+
+
 def enqueue(func, *args, **kwargs):
     if get_setting('redis', 'eager'):
         func(*args, **kwargs)
     else:
-        q = Queue(connection=redis_conn, name=get_queue_name(), default_timeout=get_setting('redis', 'timeout'))
+        q = get_queue_object()
         q.enqueue(func, *args, **kwargs)

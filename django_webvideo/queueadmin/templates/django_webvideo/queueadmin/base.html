@@ -1,0 +1,52 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% trans 'Django Webvideo' %}</title>
+	<link type="text/css" rel="stylesheet" href="{% static 'django_webvideo/css/bootstrap.min.css' %}" charset="utf-8"/>
+    <link type="text/css" rel="stylesheet" href="{% static 'django_webvideo/css/bootstrap-responsive.min.css' %}" charset="utf-8"/>
+    <link type="text/css" rel="stylesheet" href="{% static 'django_webvideo/queueadmin/css/main.css' %}" charset="utf-8"/>
+	<script src="{% static 'django_webvideo/js/modernizr-2.6.1.min.js' %}"></script>
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+{% block body %}
+	{% block header %}
+    <header class="main">
+        {% block navi %}
+        <nav class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+					<a class="brand" href="{% url 'django_webvideo:queueadmin:index' %}">{% trans 'Django Webvideo' %}</a>
+                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+
+                    {% if request.user.is_active %}
+                    <div class="nav-collapse collapse">
+                        <ul class="nav pull-right">
+							<li><a href="#">Mein Konto</a></li>
+                            <li><a href="{% url 'django_webvideo:queueadmin:logout' %}">{% trans 'Logout' %}</a></li>
+                        </ul>
+                    </div>
+					{% endif %}
+                </div>
+            </div>
+        </nav>
+        {% endblock %}
+    </header>
+    {% endblock %}
+    <div class="container-fluid content">
+	{% block content %}
+
+	{% endblock %}
+	</div>
+{% endblock %}
+{% block js %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="{% static "django_webvideo/js/jquery-1.8.2.min.js" %}"><\/script>')</script>
+<script type="text/javascript" charset="utf-8" src="{% static "django_webvideo/js/bootstrap.min.js" %}"></script>
+{% endblock %}
+</body>
+</html>

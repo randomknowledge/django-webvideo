@@ -15,6 +15,15 @@ urlpatterns = patterns(
     (r'^api/', include(v1_api.urls)),
 )
 
+if 'django_webvideo.queueadmin' in settings.INSTALLED_APPS:
+    urlpatterns = patterns(
+        '',
+        url(
+            r'^queueadmin/',
+            include('django_webvideo.queueadmin.urls', namespace='queueadmin', app_name='queueadmin')
+        ),
+    )
+
 if settings.DEBUG:
     urlpatterns += patterns(
         '',

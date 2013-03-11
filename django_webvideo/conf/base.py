@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     'tastypie',
     'easy_thumbnails',
     'django_webvideo',
+    'django_webvideo.queueadmin'
 ]
 
 TEMPLATE_DIRS = (
@@ -93,6 +94,7 @@ TEMPLATE_DIRS = (
 )
 STATICFILES_DIRS = (
     '%s/static' % BASE_DIR,
+    '%s/queueadmin/static' % PROJECT_DIR,
 )
 LOCALE_PATHS = (
     '%s/locale' % BASE_DIR,

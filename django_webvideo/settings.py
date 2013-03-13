@@ -94,7 +94,7 @@ DEFAULT_SETTINGS = {
         },
         'eager': False,  # If True, Tasks are not queued, but executed directly. Use for testing purposes only!
         'queue_prefix': 'webvideo',  # django_webvideo will prefix all (RQ-)Queues with this prefix.
-        'timeout': 600,  # rq queue timeout (in seconds)
+        'timeout': 3600,  # rq queue timeout (in seconds)
     },
     'use_admin': True,  # set to False to disable registering into django admin
 }

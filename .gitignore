@@ -21,6 +21,8 @@ virtualenv/
 #########
 database.db
 settings_local.py
+/Vagrantfile
+/vagrant/
 
 # OS generated files #
 ######################

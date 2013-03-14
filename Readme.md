@@ -21,6 +21,9 @@ ____
 
 ## Installation
 
+To install ffmpeg with the required libs see the [FFmpeg UbuntuCompilationGuide](https://ffmpeg.org/trac/ffmpeg/wiki/UbuntuCompilationGuide)
+____
+
 Install [pip](http://pypi.python.org/pypi/pip):
 
 ```console

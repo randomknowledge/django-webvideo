@@ -1,5 +1,6 @@
 # coding=utf-8
 from django.conf import settings
+from django.contrib.auth.models import User
 from django_webvideo.video import convert_video, create_screen_image, video_metadata
 import os
 from django.db import models
@@ -45,8 +46,8 @@ def _get_image_paths(infile, n):
     return path_rel, path_abs
 
 
-def _convert_single(web_video, codec, quality):
-    web_video._convert_single(codec, quality)
+def _convert_single(web_video_id, codec, quality):
+    WebVideo.objects.get(pk=web_video_id).convert_single(codec, quality)
 
 
 def _set_meta(video_obj, save=False):
@@ -62,9 +63,14 @@ def _set_meta(video_obj, save=False):
 
 
 class VideoScreen(models.Model):
+    owner = models.ForeignKey(User, null=True, blank=True)
     video = models.ForeignKey('WebVideo', related_name='screen')
     image = models.ImageField(upload_to=get_setting('screens_to'))
     num = models.IntegerField(max_length=2)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.owner = self.video.owner
+        super(VideoScreen, self).save(force_insert, force_update, using, update_fields)
 
     class Meta:
         unique_together = ('video', 'num', )
@@ -74,6 +80,7 @@ class VideoScreen(models.Model):
 
 
 class ConvertedVideo(models.Model):
+    owner = models.ForeignKey(User, null=True, blank=True)
     video = models.FileField(upload_to=get_setting('convert_to'))
     original = models.ForeignKey('WebVideo', related_name='converted')
     codec = models.CharField(max_length=20, choices=constants.VIDEO_CODEC_CHOICES)
@@ -89,6 +96,10 @@ class ConvertedVideo(models.Model):
         choices=constants.VIDEO_STATE_CHOICES, default=constants.VIDEO_STATE_PENDING, editable=False
     )
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.owner = self.original.owner
+        super(ConvertedVideo, self).save(force_insert, force_update, using, update_fields)
+
     class Meta:
         unique_together = ('original', 'codec', 'quality', )
 
@@ -97,13 +108,17 @@ class ConvertedVideo(models.Model):
 
 
 class WebVideo(models.Model):
+    owner = models.ForeignKey(User, null=True, blank=True, editable=False)
     video = models.FileField(upload_to=get_setting('upload_to'))
-    filesize = models.IntegerField(default=0)
-    duration = models.FloatField(default=0.0, verbose_name=_(u"Duration in seconds"))
-    width = models.IntegerField(default=0)
-    height = models.IntegerField(default=0)
-    bitrate = models.FloatField(default=0.0, verbose_name=_(u"Bitrate in kb/s"))
-    framerate = models.FloatField(default=29.92)
+    filesize = models.IntegerField(default=0, editable=False)
+    duration = models.FloatField(default=0.0, verbose_name=_(u"Duration in seconds"), editable=False)
+    width = models.IntegerField(default=0, editable=False)
+    height = models.IntegerField(default=0, editable=False)
+    bitrate = models.FloatField(default=0.0, verbose_name=_(u"Bitrate in kb/s"), editable=False)
+    framerate = models.FloatField(default=29.92, editable=False)
+
+    codecs = models.CharField(max_length=255, blank=True, null=True, editable=True)
+    qualities = models.CharField(max_length=255, blank=True, null=True, editable=True)
 
     @property
     def status(self):
@@ -146,17 +161,17 @@ class WebVideo(models.Model):
     def convert(self):
         if self.status != constants.VIDEO_STATE_PENDING:
             return
-        for codec in constants.VIDEO_CODECS.keys():
-            for quality in constants.VIDEO_QUALITIES:
-                minrate = constants.VIDEO_QUALITY_MIN_BITRATES[quality]
-                if self.bitrate > 0 and self.bitrate >= minrate:
-                    queue.enqueue(_convert_single, self, codec, quality)
-            queue.enqueue(_convert_single, self, codec, 'original')
+        for codec in self.codecs.split(','):
+            for quality in self.qualities.split(','):
+                #minrate = constants.VIDEO_QUALITY_MIN_BITRATES[quality]
+                #if self.bitrate > 0 and self.bitrate >= minrate:
+                queue.enqueue(_convert_single, self.pk, codec, quality)
+            #queue.enqueue(_convert_single, self.pk, codec, 'original')
 
-    def _convert_single(self, codec, quality):
+    def convert_single(self, codec, quality):
         paths = _get_video_paths(self.video.path, codec)[quality]
 
-        conv = ConvertedVideo(original=self, codec=codec, quality=quality)
+        conv = ConvertedVideo(original=self, codec=codec, quality=quality, owner=self.owner)
 
         if convert_video(self.video.path, paths.get('absolute'), codec, quality, self.bitrate, self.width, self.height):
             # get object from db to prevent "no-save" bug in rq
@@ -183,8 +198,8 @@ class WebVideo(models.Model):
             else:
                 frame = round(dur / constants.NUM_SCREENS * (num * 0.9), 2)
             if create_screen_image(self.video.path, absolute, frame):
-                VideoScreen(video=self, image=relative, num=num).save()
+                VideoScreen(video=self, image=relative, num=num, owner=self.owner).save()
 
     def converted_list_admin(self):
         return ["{0}, {1}".format(c.codec, c.quality) for c in self.converted.all()]
-    converted_list_admin.short_description = _('Variants')
+    converted_list_admin.short_description = _('Converted variants')

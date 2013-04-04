@@ -1,6 +1,8 @@
 # coding: utf-8
+from django import forms
 from django.contrib import admin
 from django.utils.safestring import mark_safe
+from django_webvideo import constants
 from django_webvideo.models import WebVideo, VideoScreen, ConvertedVideo
 from django_webvideo.settings import get_setting
 from django_webvideo.templatetags.webvideo_tags import video_tag
@@ -105,7 +107,33 @@ class ConvertedVideoInline(admin.StackedInline):
     admin_filesize = admin_filesize_helper()
 
 
-class VideoScreenAdmin(admin.ModelAdmin):
+class WebVideoForm(forms.ModelForm):
+    target_codecs = forms.MultipleChoiceField(
+        choices=constants.VIDEO_CODEC_CHOICES,
+        initial=constants.VIDEO_CODECS.keys(),
+        required=False,
+    )
+    target_qualities = forms.MultipleChoiceField(
+        choices=constants.VIDEO_QUALITY_CHOICES,
+        initial=constants.VIDEO_QUALITIES + ('original',),
+        required=False,
+    )
+
+    class Meta:
+        model = WebVideo
+
+
+class OwnerAdmin(admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        if getattr(obj, 'owner', None) is None:
+            obj.owner = request.user
+        obj.save()
+
+    def queryset(self, request):
+        return super(OwnerAdmin, self).queryset(request).filter(owner=request.user)
+
+
+class VideoScreenAdmin(OwnerAdmin):
     list_display = ('video', 'admin_thumb_list', 'num', )
     list_display_links = ('video', 'num', )
     fields = ('video', 'image', 'admin_thumb', 'num', )
@@ -114,8 +142,11 @@ class VideoScreenAdmin(admin.ModelAdmin):
     admin_thumb_list = admin_thumb_helper_videoscreen(width=200, height=80)
     admin_thumb = admin_thumb_helper_videoscreen(height=300)
 
+    def has_add_permission(self, request):
+        return False
 
-class WebVideoAdmin(admin.ModelAdmin):
+
+class WebVideoAdmin(OwnerAdmin):
     list_display = (
         'video',
         'admin_thumb',
@@ -135,7 +166,7 @@ class WebVideoAdmin(admin.ModelAdmin):
         'bitrate',
         'framerate',
     )
-    fields = (
+    edit_fields = (
         'video',
         'admin_video',
         'admin_filesize',
@@ -145,8 +176,10 @@ class WebVideoAdmin(admin.ModelAdmin):
         'bitrate',
         'framerate',
         'converted_list_admin',
+        'codecs',
+        'qualities',
     )
-    readonly_fields = (
+    edit_readonly_fields = (
         'admin_video',
         'admin_filesize',
         'duration',
@@ -155,15 +188,45 @@ class WebVideoAdmin(admin.ModelAdmin):
         'bitrate',
         'framerate',
         'converted_list_admin',
+        'codecs',
+        'qualities',
     )
+
     inlines = (ConvertedVideoInline, )
 
     admin_thumb = admin_thumb_helper_video(width=100, height=50)
     admin_video = admin_video_helper()
     admin_filesize = admin_filesize_helper()
 
+    form = WebVideoForm
 
-class ConvertedVideoAdmin(admin.ModelAdmin):
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # Editing
+            return self.edit_readonly_fields
+        return ()#('admin_video', 'admin_filesize', 'converted_list_admin')
+    
+    def get_fieldsets(self, request, obj=None):
+        if obj:  # Editing
+            return [(None, {'fields': self.edit_fields})]
+        return [(None, {'fields': ('video', 'target_codecs', 'target_qualities',)})]
+
+    def get_inline_instances(self, request, obj=None):
+        if obj:  # Editing
+            return super(WebVideoAdmin, self).get_inline_instances(request, obj)
+        return []
+
+    def save_model(self, request, obj, form, change):
+        print form.cleaned_data['target_codecs']
+        print form.cleaned_data['target_qualities']
+        obj.codecs = ','.join(form.cleaned_data['target_codecs'])
+        obj.qualities = ','.join(form.cleaned_data['target_qualities'])
+        #obj.codecs = 'Foo #%d' % form.cleaned_data['calculated']
+        if getattr(obj, 'owner', None) is None:
+            obj.owner = request.user
+        obj.save()
+
+
+class ConvertedVideoAdmin(OwnerAdmin):
     list_display = (
         'video',
         'admin_thumb',
@@ -219,6 +282,9 @@ class ConvertedVideoAdmin(admin.ModelAdmin):
     admin_thumb = admin_thumb_helper_video(width=50, height=30)
     admin_video = admin_video_helper()
     admin_filesize = admin_filesize_helper()
+
+    def has_add_permission(self, request):
+        return False
 
 
 if get_setting('use_admin'):

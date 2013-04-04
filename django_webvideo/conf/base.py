@@ -110,6 +110,7 @@ try:
 except ImportError:
     pass
 else:
+    TEMPLATE_CONTEXT_PROCESSORS += ('django_webvideo.context_processors.suit',)
     INSTALLED_APPS = ['suit', ] + INSTALLED_APPS
     SUIT_CONFIG = {
         'ADMIN_NAME': _('Django Webvideo'),

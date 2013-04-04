@@ -1,0 +1,22 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% block object-tools-items %}
+	{% if original.converted.all %}
+        {% for conv in original.converted.all %}
+            <li>
+                <a href="{{ conv.video.url }}">
+                    {% if has_django_suit %}
+                    <i class="icon-download icon-alpha75"></i>
+                    {% else %}
+                    {% trans 'Download' %}
+                    {% endif %}
+                    {{ conv.codec }}, {{ conv.quality }}
+                </a>
+            </li>
+        {% endfor %}
+	    {% if has_django_suit %}
+		<li><br/></li>
+	    {% endif %}
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

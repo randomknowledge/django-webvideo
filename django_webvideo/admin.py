@@ -130,6 +130,8 @@ class OwnerAdmin(admin.ModelAdmin):
         obj.save()
 
     def queryset(self, request):
+        if request.user.is_superuser:
+            return super(OwnerAdmin, self).queryset(request)
         return super(OwnerAdmin, self).queryset(request).filter(owner=request.user)
 
 
@@ -157,6 +159,19 @@ class WebVideoAdmin(OwnerAdmin):
         'bitrate',
         'framerate',
     )
+
+    su_list_display = (
+        'video',
+        'owner',
+        'admin_thumb',
+        'admin_filesize',
+        'duration',
+        'width',
+        'height',
+        'bitrate',
+        'framerate',
+    )
+
     list_display_links = (
         'video',
         'admin_filesize',
@@ -179,8 +194,23 @@ class WebVideoAdmin(OwnerAdmin):
         'codecs',
         'qualities',
     )
+    su_edit_fields = (
+        'video',
+        'owner',
+        'admin_video',
+        'admin_filesize',
+        'duration',
+        'width',
+        'height',
+        'bitrate',
+        'framerate',
+        'converted_list_admin',
+        'codecs',
+        'qualities',
+    )
     edit_readonly_fields = (
         'admin_video',
+        'owner',
         'admin_filesize',
         'duration',
         'width',
@@ -200,6 +230,16 @@ class WebVideoAdmin(OwnerAdmin):
 
     form = WebVideoForm
 
+    def get_list_filter(self, request):
+        if request.user.is_superuser:
+            return ('owner',)
+        return ()
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return self.su_list_display
+        return self.list_display
+
     def get_readonly_fields(self, request, obj=None):
         if obj:  # Editing
             return self.edit_readonly_fields
@@ -207,6 +247,8 @@ class WebVideoAdmin(OwnerAdmin):
     
     def get_fieldsets(self, request, obj=None):
         if obj:  # Editing
+            if request.user.is_superuser:
+                return [(None, {'fields': self.su_edit_fields})]
             return [(None, {'fields': self.edit_fields})]
         return [(None, {'fields': ('video', 'target_codecs', 'target_qualities',)})]
 
@@ -277,7 +319,7 @@ class ConvertedVideoAdmin(OwnerAdmin):
         'bitrate',
         'framerate',
     )
-    list_filter = ('codec', 'quality', )
+    list_filter = ('codec', 'quality')
 
     admin_thumb = admin_thumb_helper_video(width=50, height=30)
     admin_video = admin_video_helper()

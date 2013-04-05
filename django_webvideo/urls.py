@@ -12,6 +12,7 @@ urlpatterns = patterns(
     '',
     url(r'^test/?$', 'django_webvideo.views.test', name='test'),
     url(r'^upload_test/?$', 'django_webvideo.views.upload_test', name='upload_test'),
+    url(r'download/(?P<pk>\d+)/(?P<codec>[a-z0-9_-]+)/(?P<quality>[a-z0-9_-]+)/?$', 'django_webvideo.views.download', name='download'),
     (r'^api/', include(v1_api.urls)),
 )
 

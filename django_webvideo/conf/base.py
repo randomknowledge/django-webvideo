@@ -96,7 +96,7 @@ TEMPLATE_DIRS = (
     '%s/templates' % PROJECT_DIR,
 )
 STATICFILES_DIRS = (
-    '%s/static' % BASE_DIR,
+    #'%s/static' % BASE_DIR,
 )
 LOCALE_PATHS = (
     '%s/locale' % BASE_DIR,

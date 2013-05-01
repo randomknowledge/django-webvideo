@@ -1,6 +1,7 @@
 # coding=utf-8
 import tempfile
 import zipfile
+from django.db.models import Q
 from easy_thumbnails.models import Source
 import os
 from django.conf import settings
@@ -77,7 +78,7 @@ def serve_media(request, path):
             except IndexError:
                 sources = ()
             try:
-                screen = VideoScreen.objects.get(image__in=sources)
+                screen = VideoScreen.objects.get(Q(image__in=sources) | Q(image=path))
                 if not user.is_superuser and screen.owner != user:
                     return HttpResponseForbidden()
             except VideoScreen.DoesNotExist:

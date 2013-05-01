@@ -26,6 +26,5 @@ if settings.DEBUG:
 elif "sendfile" in settings.INSTALLED_APPS:
     urlpatterns += patterns(
         '',
-        url(r'^media/(?P<path>.*)$', 'django_webvideo.views.serve_media',
-            {'document_root': settings.MEDIA_ROOT}),
+        url(r'^media/(?P<path>.*)$', 'django_webvideo.views.serve_media'),
     )

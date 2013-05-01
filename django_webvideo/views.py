@@ -1,13 +1,13 @@
 # coding=utf-8
 import tempfile
 import zipfile
+from easy_thumbnails.models import Source
 import os
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponseForbidden, HttpResponse, HttpResponseNotFound
 from django.core.servers.basehttp import FileWrapper
 from django.shortcuts import render, get_object_or_404
-from django_webvideo.models import WebVideo
+from django_webvideo.models import WebVideo, VideoScreen, ConvertedVideo
 from sendfile import sendfile
 
 
@@ -63,6 +63,38 @@ def download(request, pk, codec, quality):
     return response
 
 
-@staff_member_required
-def serve_media(request, path, document_root):
+def serve_media(request, path):
+    if path.startswith("videos/"):
+        if not request.user:
+            return HttpResponseForbidden()
+        user = request.user
+        if not user.is_active or not user.is_authenticated() or not user.is_staff:
+            return HttpResponseForbidden()
+
+        if path.startswith("videos/screens/"):
+            try:
+                sources = Source.objects.filter(thumbnails__name=path).values_list("name")[0]
+            except IndexError:
+                sources = ()
+            try:
+                screen = VideoScreen.objects.get(image__in=sources)
+                if not user.is_superuser and screen.owner != user:
+                    return HttpResponseForbidden()
+            except VideoScreen.DoesNotExist:
+                return HttpResponseNotFound()
+        elif path.startswith("videos/converted/"):
+            try:
+                video = ConvertedVideo.objects.get(video=path)
+                if not user.is_superuser and video.owner != user:
+                    return HttpResponseForbidden()
+            except ConvertedVideo.DoesNotExist:
+                return HttpResponseNotFound()
+        else:
+            try:
+                video = WebVideo.objects.get(video=path)
+                if not user.is_superuser and video.owner != user:
+                    return HttpResponseForbidden()
+            except WebVideo.DoesNotExist:
+                return HttpResponseNotFound()
+
     return sendfile(request, os.path.join(settings.MEDIA_ROOT, path))

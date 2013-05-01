@@ -20,6 +20,10 @@ PROJECT_DIR = os.path.abspath(
     )
 )
 
+ALLOWED_HOSTS = [
+    "*",
+]
+
 # Workaround for bug in Pycharm when calling syncdb on mac
 if platform.system() == 'Darwin':
     os.environ['LANG'] = 'de_DE.UTF-8'

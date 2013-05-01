@@ -1,4 +1,4 @@
-Django==1.5
+Django==1.5.1
 South==0.7.6
 PIL==1.1.7
 easy-thumbnails==1.2

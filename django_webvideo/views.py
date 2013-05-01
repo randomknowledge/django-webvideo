@@ -8,6 +8,7 @@ from django.http import HttpResponseForbidden, HttpResponse, HttpResponseNotFoun
 from django.core.servers.basehttp import FileWrapper
 from django.shortcuts import render, get_object_or_404
 from django_webvideo.models import WebVideo
+from sendfile import sendfile
 
 
 def test(request):
@@ -63,5 +64,5 @@ def download(request, pk, codec, quality):
 
 
 @staff_member_required
-def sendfile(request, path, document_root):
+def serve_media(request, path, document_root):
     return sendfile(request, os.path.join(settings.MEDIA_ROOT, path))

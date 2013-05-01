@@ -1,4 +1,6 @@
 -r requirements.txt
-gunicorn
+gunicorn==0.17.2
+gevent==0.13.8
 raven
 django-redis-cache
+MySQL-python==1.2.4

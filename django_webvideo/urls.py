@@ -23,3 +23,9 @@ if settings.DEBUG:
             {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
         url(r'', include('django.contrib.staticfiles.urls')),
     )
+elif "sendfile" in settings.INSTALLED_APPS:
+    urlpatterns += patterns(
+        '',
+        url(r'^media/(?P<path>.*)$', 'django_webvideo.views.sendfile',
+            {'document_root': settings.MEDIA_ROOT, 'show_indexes': False}),
+    )

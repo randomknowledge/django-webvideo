@@ -2,6 +2,8 @@
 import tempfile
 import zipfile
 import os
+from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponseForbidden, HttpResponse, HttpResponseNotFound
 from django.core.servers.basehttp import FileWrapper
 from django.shortcuts import render, get_object_or_404
@@ -58,3 +60,8 @@ def download(request, pk, codec, quality):
     response['Content-Length'] = temp.tell()
     temp.seek(0)
     return response
+
+
+@staff_member_required
+def sendfile(request, path, document_root):
+    return sendfile(request, os.path.join(settings.MEDIA_ROOT, path))
